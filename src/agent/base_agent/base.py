@@ -1,3 +1,4 @@
+import logging
 from langchain.output_parsers import PydanticOutputParser
 from langchain_core.prompts import PromptTemplate
 
@@ -5,12 +6,15 @@ from agent.domain.agent.output import Output
 from agent.domain.entity.chain import EntityChain
 from agent.infra.openai.gateway import GatewayOpenAi
 
+logging.basicConfig(level = logging.INFO)
+logger = logging.getLogger(__name__)
 
 class BaseAgentDetectEmotion(EntityChain):
     def llm(self):
         """
         Initialize the LLM (Language Model) with the API key and model name.
         """
+        logger.info("Initializing LLM client.")
         llm_instance = GatewayOpenAi()
         return llm_instance.get_llm_client()
 
@@ -18,14 +22,14 @@ class BaseAgentDetectEmotion(EntityChain):
         """
         Initialize the prompt template with the specified template.
         """
-
+        logger.info("Creating prompt template.")
         parser = self.parser()
         instructions = parser.get_format_instructions()
 
         prompt = PromptTemplate(
-            template=self.template,
-            input_variables=self.input_variables,
-            partial_variables={
+            template = self.template,
+            input_variables = self.input_variables,
+            partial_variables = {
                 "format_instructions": instructions,
             },
         )
@@ -36,6 +40,7 @@ class BaseAgentDetectEmotion(EntityChain):
         """
         Initialize the parser class.
         """
+        logger.info("Initializing parser.")
         parser = PydanticOutputParser(pydantic_object=Output)
 
         return parser
@@ -44,6 +49,7 @@ class BaseAgentDetectEmotion(EntityChain):
         """
         Initialize the chain with the LLM and prompt.
         """
+        logger.info("Building chain.")
         prompt = self.prompt()
         llm = self.llm()
         parser = self.parser()
@@ -55,8 +61,11 @@ class BaseAgentDetectEmotion(EntityChain):
         """
         Run the chain with the given input.
         """
+        logger.info(f"Running chain with input: {input}")
         chain = self.chain()
-        return chain.invoke(input)
+        result = chain.invoke(input)
+        logger.info(f"Chain result: {result}")
+        return result
 
 
 agent = BaseAgentDetectEmotion()
