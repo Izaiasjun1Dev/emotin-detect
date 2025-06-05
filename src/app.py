@@ -1,5 +1,6 @@
 import json
 from handlers.handler_emotion import get_emotion_chain
+import observability  # noqa: F401
 
 if __name__ == "__main__":
     body = {
