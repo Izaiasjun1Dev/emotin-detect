@@ -1,6 +1,8 @@
 from langchain_openai import ChatOpenAI
 
 from configs.settings import settings
+import logging
+from observability import tracer
 
 
 class GatewayOpenAi:
@@ -10,6 +12,7 @@ class GatewayOpenAi:
 
     def __init__(self):
         self.settings = settings
+        self.logger = logging.getLogger(__name__)
 
     def get_llm_client(self):
         """
@@ -22,11 +25,12 @@ class GatewayOpenAi:
         Create and return the LLM client.
         """
         # Initialize the LLM client with the settings
-
-        llm = ChatOpenAI(
-            api_key=settings.openai_api_key,
-            model_name=settings.openai_model,
-            temperature=0.5,
-        )
+        self.logger.info("Creating OpenAI client")
+        with tracer.start_as_current_span("openai_client"):
+            llm = ChatOpenAI(
+                api_key=settings.openai_api_key,
+                model_name=settings.openai_model,
+                temperature=0.5,
+            )
 
         return llm

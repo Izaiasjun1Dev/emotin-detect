@@ -5,8 +5,8 @@ from langchain_core.prompts import PromptTemplate
 from agent.domain.agent.output import Output
 from agent.domain.entity.chain import EntityChain
 from agent.infra.openai.gateway import GatewayOpenAi
+from observability import tracer
 
-logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger(__name__)
 
 class BaseAgentDetectEmotion(EntityChain):
@@ -62,8 +62,11 @@ class BaseAgentDetectEmotion(EntityChain):
         Run the chain with the given input.
         """
         logger.info(f"Running chain with input: {input}")
-        chain = self.chain()
-        result = chain.invoke(input)
+        with tracer.start_as_current_span("detect_emotion") as span:
+            span.set_attribute("input", str(input))
+            chain = self.chain()
+            result = chain.invoke(input)
+            span.set_attribute("result", str(result))
         logger.info(f"Chain result: {result}")
         return result
 
